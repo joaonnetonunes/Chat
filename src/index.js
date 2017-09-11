@@ -3,4 +3,5 @@ module.exports = (app) => {
     app.use('/users', require('./routes/users'));
     app.use('/conversations', require('./routes/conversations'));
     app.use('/login', require('./routes/login'));
+    app.use('/logout', require('./routes/logout'));
 };
