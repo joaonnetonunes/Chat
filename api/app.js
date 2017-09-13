@@ -6,10 +6,9 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var mongoose = require('mongoose');
 
-var index = require('./routes/index');
-var users = require('./routes/users');
-
 var app = express();
+var server = require('http').Server(app);
+var io = require('socket.io')(server);
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -35,8 +34,12 @@ mongoose.connect(app.get('mongo_url'), {
     useMongoClient: true
 });
 
-app.use('/', index);
-app.use('/users', users);
+app.use((req, res, next) => {
+    res.io = io;
+    next();
+});
+
+require('./routes')(app);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -56,4 +59,7 @@ app.use(function(err, req, res, next) {
   res.render('error');
 });
 
-module.exports = app;
+module.exports = {
+    app,
+    server
+};
