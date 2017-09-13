@@ -14,6 +14,7 @@ const rev = require('gulp-rev');
 const revCollector = require('gulp-rev-collector');
 const sass = require('gulp-sass');
 const uglify = require('gulp-uglify');
+const dateFormat = require('dateformat');
 
 const paths = {
     fontsSrc: 'src/fonts/',
@@ -113,6 +114,7 @@ gulp.task('build-fav-icon', () => {
 gulp.task('build', ['build-html', 'build-css', 'build-js', 'build-images', 'build-fonts', 'build-vendor', 'build-icons', 'build-styles', 'build-fav-icon'], () => {
     return connect.server({
         root: 'src',
+        port: 9000,
         liveReload: true
     });
 });

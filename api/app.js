@@ -5,6 +5,7 @@ var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var mongoose = require('mongoose');
+var cors = require('cors');
 
 var app = express();
 var server = require('http').Server(app);
@@ -22,8 +23,24 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-/*
-    mongo database stuff
+/**
+ * cors
+ */
+//app.options('http://localhost:9000/*', cors());
+/*var whitelist = ['http://localhost:9000/!*', 'http://localhost:9000/', 'http://localhost/', '*'];
+var corsOptions = {
+    origin: function (origin, callback) {
+        if (whitelist.indexOf(origin) !== -1) {
+            callback(null, true)
+        } else {
+            callback(new Error('Not allowed by CORS'))
+        }
+    }
+};*/
+//app.use(cors(corsOptions));
+
+/**
+ * mongo database stuff
  */
 app.set('mongo_host', '127.0.0.1');
 app.set('mongo_port', 27017);
@@ -34,11 +51,33 @@ mongoose.connect(app.get('mongo_url'), {
     useMongoClient: true
 });
 
-app.use((req, res, next) => {
+/*app.use((req, res, next) => {
     res.io = io;
     next();
 });
 
+var sockets = io.sockets;
+
+sockets.on('connection', (socket) => {
+    console.log('A new connection has been established.');
+
+    socket.on('message channel', (data) => {
+        socket.broadcast.in(socket.channel).emit('new message', {
+            message: data.message,
+            channel: data.channel,
+            sentAt: data.sentAt
+        });
+    });
+
+    socket.on('join channel', function (data) {
+        socket.channel = data.channel;
+        socket.join(socket.channel);
+
+        socket.emit('joined channel', data)
+    });
+});*/
+
+require('./websocket')(app, io);
 require('./routes')(app);
 
 // catch 404 and forward to error handler
