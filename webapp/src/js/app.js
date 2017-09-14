@@ -1,17 +1,20 @@
 $(function () {
     var conversationsTab = $('#conversations');
+    var usersTab = $('#users');
 
     /**
      * show available channels
      */
+
+    var requestedAddress = 'http://localhost:3000';
     (function () {
         var getConversations = function () {
-            return $.get('http://localhost:3000/conversations', function (data) {
+            return $.get(`${requestedAddress}/conversations`, function (data) {
                 if (!data.status) {
                     return false;
                 }
 
-                var conversations = data && data.conversations
+                var conversations = data && data.conversations;
 
                 conversations.forEach(function (conversation, index) {
                     var template = `
@@ -29,6 +32,31 @@ $(function () {
             })
         };
 
+        var getUsers = function () {
+            return $.get(`${requestedAddress}/users`, function (data) {
+                if (!data.status) {
+                    return false;
+                }
+
+                var users = data && data.users;
+
+                users.forEach(function (user, index) {
+                    var template = `
+                    <div class="chat-user user" data-user="${user.name}" data-username="${user.username}">
+                        <span class="pull-right label label-success">Online</span>
+                        <img class="chat-avatar" src="images/a3.jpg" alt="">
+                        <div class="chat-user-name">
+                            <a href="#">${user.name}</a>
+                        </div>
+                    </div>
+                    `;
+
+                    usersTab.append(template);
+                })
+            })
+        };
+
+        getUsers();
         getConversations();
     })();
 
@@ -38,6 +66,7 @@ $(function () {
 
     var socket = io('//localhost:3000');
     var currentChannel = undefined;
+    var currentUser = undefined;
 
     /**
      * join channel when pressed
@@ -48,6 +77,22 @@ $(function () {
         socket.emit('join channel', {
             channel: channelId
         });
+
+        $('.chat-discussion').html('');
+
+        e.preventDefault();
+    });
+
+    usersTab.on('click', '.user', function (e) {
+        var user = $(this).attr('data-user');
+        var username = $(this).attr('data-username');
+
+        socket.emit('join user', {
+            user,
+            username
+        });
+
+        $('.chat-discussion').html('');
 
         e.preventDefault();
     });
@@ -68,11 +113,19 @@ $(function () {
 
             var date = new Date();
 
-            socket.emit('message channel', {
-                message: val,
-                channel: currentChannel,
-                sentAt: date
-            });
+            if (!currentChannel) {
+                socket.emit('message user', {
+                    message: val,
+                    username: currentUser,
+                    sentAt: date
+                });
+            } else {
+                socket.emit('message channel', {
+                    message: val,
+                    channel: currentChannel,
+                    sentAt: date
+                });
+            }
 
             var msgTpl = `
             <div class="chat-message right">
@@ -96,7 +149,6 @@ $(function () {
     /**
      *
      *
-     *
      * received answer
      *
      *
@@ -104,6 +156,10 @@ $(function () {
 
     socket.on('joined channel', function (data) {
         currentChannel = data.channel;
+    });
+
+    socket.on('joined user', function (data) {
+        currentUser = data.user;
     });
 
     /**
