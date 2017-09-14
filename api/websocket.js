@@ -21,7 +21,6 @@ module.exports = (app, io) => {
         });
 
         socket.on('message user', (data) => {
-            @TODO: 
             socket.broadcast.in(socket.username).emit('new message', {
                 message: data.message,
                 username: data.username,
