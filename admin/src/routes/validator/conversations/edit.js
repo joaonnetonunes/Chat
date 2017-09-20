@@ -3,11 +3,11 @@ module.exports = (req, res, next) => {
         .checkParams('slug', 'Field id is required')
         .notEmpty();
 
-    let errors = req.validationErrors();
-
-    if (!errors) {
-        return next();
-    }
-
-    return res.redirect('/conversations');
+    req.getValidationResult().then((result) => {
+        if (!result.isEmpty()) {
+            return res.redirect('/conversations');
+        } else {
+            return next();
+        }
+    });
 };

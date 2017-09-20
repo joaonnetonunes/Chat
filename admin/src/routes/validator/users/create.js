@@ -13,11 +13,11 @@ module.exports = (req, res, next) => {
         .checkBody('password', 'Field password is required')
         .notEmpty();
 
-    let errors = req.validationErrors();
-
-    if (!errors) {
-        return next();
-    }
-
-    return res.redirect('/users/new');
+    req.getValidationResult().then((result) => {
+        if (!result.isEmpty()) {
+            return res.redirect('/users/new');
+        } else {
+            return next();
+        }
+    });
 };

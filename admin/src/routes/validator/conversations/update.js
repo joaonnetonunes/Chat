@@ -4,11 +4,11 @@ module.exports = (req, res, next) => {
         .notEmpty()
         .isMongoId();
 
-    let errors = req.validationErrors();
-
-    if (!errors) {
-        return next();
-    }
-
-    return res.redirect('/conversations');
+    req.getValidationResult().then((result) => {
+        if (!result.isEmpty()) {
+            return res.redirect('/conversations');
+        } else {
+            return next();
+        }
+    });
 };

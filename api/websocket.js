@@ -1,5 +1,21 @@
 module.exports = (app, io) => {
+    var userAgent;
+    var requestIp = require('request-ip');
+    var ipaddr = require('ipaddr.js');
+
     app.use((req, res, next) => {
+        userAgent = req.headers['user-agent'];
+
+        var clientIp = requestIp.getClientIp(req);
+        var addr = ipaddr.parse(clientIp);
+
+        console.log(addr.kind() + ': ' + clientIp);
+        console.log(addr.toIPv4Address().toString());
+
+        if (addr.isIPv4MappedAddress()) {
+            //console.log('ipv4: ' + addr.toIPv4Address().toString() + addr.toIPv4MappedAddress());
+        }
+
         res.io = io;
         next();
     });
@@ -21,6 +37,8 @@ module.exports = (app, io) => {
         });
 
         socket.on('message user', (data) => {
+            console.log('User-Agent: ' + userAgent);
+
             socket.broadcast.in(socket.username).emit('new message', {
                 message: data.message,
                 username: data.username,
@@ -41,11 +59,5 @@ module.exports = (app, io) => {
 
             socket.emit('joined channel', data);
         });
-
-        /**
-         * direct messages
-         */
-
-
     });
 };
